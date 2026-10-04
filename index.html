@@ -697,10 +697,30 @@
       .header-container {
         flex-direction: column;
         align-items: stretch;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+      .header-container > * {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .brand-logo {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .brand-logo > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .brand-name, .brand-badge {
+        white-space: normal;
       }
       .ag-nav-tabs {
         overflow-x: auto;
         justify-content: flex-start;
+        min-width: 0;
+        max-width: 100%;
       }
     }
   </style>
