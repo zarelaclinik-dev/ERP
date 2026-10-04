@@ -686,21 +686,28 @@
       margin-top: auto;
     }
 
-    /* Responsive */
+    /* ============================================================== */
+    /* Responsive / Enfoque Móvil (teléfono primero)                   */
+    /* ============================================================== */
     @media (max-width: 900px) {
-      .form-grid-3, .form-grid-4 {
-        grid-template-columns: 1fr;
-      }
-      .form-grid-2 {
-        grid-template-columns: 1fr;
-      }
+      /* Contenedores principales con menos margen en el teléfono */
       .header-container {
         flex-direction: column;
         align-items: stretch;
+        padding: 0.85rem 1rem;
+        gap: 0.75rem;
         min-width: 0;
         width: 100%;
         max-width: 100%;
       }
+      .main-container {
+        padding: 1.15rem 1rem 2.5rem;
+      }
+      .ag-footer {
+        padding: 1rem;
+      }
+
+      /* Encabezado: el logo se adapta y el texto rompe línea */
       .header-container > * {
         min-width: 0;
         max-width: 100%;
@@ -716,11 +723,131 @@
       .brand-name, .brand-badge {
         white-space: normal;
       }
+
+      /* Pestañas: cuadrícula 2x2 que cabe sin scroll horizontal */
       .ag-nav-tabs {
-        overflow-x: auto;
-        justify-content: flex-start;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
         min-width: 0;
         max-width: 100%;
+        overflow: visible;
+      }
+      .ag-nav-tabs .ag-btn {
+        width: 100%;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        font-size: 0.82rem;
+      }
+
+      /* Formularios: una sola columna a todo el ancho */
+      .form-grid-2,
+      .form-grid-3,
+      .form-grid-4 {
+        grid-template-columns: 1fr;
+        gap: 0.95rem;
+      }
+      /* Que los campos marcados con "span 2" no creen una 2ª columna */
+      .form-grid-2 > .form-group,
+      .form-grid-3 > .form-group,
+      .form-grid-4 > .form-group {
+        grid-column: auto !important;
+      }
+      .form-group {
+        min-width: 0;
+      }
+      .form-group label {
+        flex-wrap: wrap;
+      }
+      .form-control {
+        width: 100%;
+        min-width: 0;
+      }
+
+      /* Tarjetas y tablas con un poco más de aire útil */
+      .ag-card-header {
+        padding: 1rem 1.1rem;
+      }
+      .ag-card-body {
+        padding: 1.1rem;
+      }
+      .table-responsive {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Botones de acción en formularios, cómodos para el dedo */
+      .cart-summary-box {
+        min-width: 0 !important;
+        width: 100%;
+      }
+
+      /* Tablas: en el teléfono se muestran solo las columnas clave para
+         no tener que desplazarse horizontalmente. Los estados vacíos
+         (celdas con colspan) se mantienen visibles. */
+      .ag-table th {
+        white-space: normal;
+      }
+      .ag-table {
+        font-size: 0.8rem;
+      }
+      .ag-table th,
+      .ag-table td {
+        padding: 0.55rem 0.3rem;
+      }
+      /* Botones de acción de las tablas: solo icono (con tooltip) en el teléfono */
+      .ag-table .ag-btn {
+        font-size: 0;
+        gap: 0;
+        padding: 0.4rem 0.45rem;
+      }
+      .ag-table .ag-btn i {
+        font-size: 0.9rem;
+      }
+
+      #tabla-clientes th:nth-child(1),
+      #tabla-clientes td:nth-child(1):not([colspan]),
+      #tabla-clientes th:nth-child(3),
+      #tabla-clientes td:nth-child(3):not([colspan]),
+      #tabla-clientes th:nth-child(4),
+      #tabla-clientes td:nth-child(4):not([colspan]),
+      #tabla-clientes th:nth-child(5),
+      #tabla-clientes td:nth-child(5):not([colspan]),
+      #tabla-clientes th:nth-child(6),
+      #tabla-clientes td:nth-child(6):not([colspan]) {
+        display: none;
+      }
+
+      #tabla-articulos th:nth-child(1),
+      #tabla-articulos td:nth-child(1):not([colspan]),
+      #tabla-articulos th:nth-child(3),
+      #tabla-articulos td:nth-child(3):not([colspan]),
+      #tabla-articulos th:nth-child(5),
+      #tabla-articulos td:nth-child(5):not([colspan]) {
+        display: none;
+      }
+
+      #tabla-cobranzas th:nth-child(1),
+      #tabla-cobranzas td:nth-child(1):not([colspan]),
+      #tabla-cobranzas th:nth-child(3),
+      #tabla-cobranzas td:nth-child(3):not([colspan]),
+      #tabla-cobranzas th:nth-child(4),
+      #tabla-cobranzas td:nth-child(4):not([colspan]),
+      #tabla-cobranzas th:nth-child(5),
+      #tabla-cobranzas td:nth-child(5):not([colspan]),
+      #tabla-cobranzas th:nth-child(7),
+      #tabla-cobranzas td:nth-child(7):not([colspan]) {
+        display: none;
+      }
+
+      #tabla-carrito th:nth-child(1),
+      #tabla-carrito td:nth-child(1):not([colspan]),
+      #tabla-carrito th:nth-child(4),
+      #tabla-carrito td:nth-child(4):not([colspan]) {
+        display: none;
+      }
+      #tabla-carrito th,
+      #tabla-carrito td {
+        padding: 0.6rem 0.35rem;
       }
     }
   </style>
