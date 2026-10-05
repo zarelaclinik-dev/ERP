@@ -13,8 +13,7 @@ const state = {
   articulos: [],
   ventas: [],
   carritoVenta: [],
-  clienteSeleccionadoVenta: null,
-  edicionFactura: null
+  clienteSeleccionadoVenta: null
 };
 
 // Objeto de la aplicación con todos los métodos de negocio
@@ -32,12 +31,6 @@ const app = {
     const cobroFechaInput = document.getElementById('cobro-fecha');
     if (fechaVentaInput) fechaVentaInput.value = hoy;
     if (cobroFechaInput) cobroFechaInput.value = hoy;
-
-    // Rango por defecto del cuadro de mando: últimos 30 días
-    const dashDesde = document.getElementById('dash-desde');
-    const dashHasta = document.getElementById('dash-hasta');
-    if (dashDesde) dashDesde.value = this.fechaHace30ISO();
-    if (dashHasta) dashHasta.value = hoy;
 
     // Verificar si Supabase está listo
     if (!window.supabaseClient) {
@@ -164,7 +157,7 @@ const app = {
           ${this.escaparHtml(c.direccion || 'Sin dirección')}
         </td>
         <td style="text-align: right; font-weight: 700; color: ${deuda > 0.009 ? 'var(--danger)' : 'var(--success)'};">
-          ${this.formatearMonto(deuda)}
+          $${deuda.toFixed(2)}
         </td>
         <td style="text-align: right;">
           <button class="ag-btn btn-primary btn-sm" onclick="app.facturarACliente(${c.id})" title="Crear nueva factura para este cliente">
@@ -331,8 +324,8 @@ const app = {
               ${this.escaparHtml(a.nombre)}
             </div>
           </td>
-          <td>${this.formatearMonto(costo)}</td>
-          <td style="font-weight: 700; color: var(--primary);">${this.formatearMonto(precio)}</td>
+          <td>$${costo.toFixed(2)}</td>
+          <td style="font-weight: 700; color: var(--primary);">$${precio.toFixed(2)}</td>
           <td>
             <span class="ag-badge ${margen >= 30 ? 'badge-success' : 'badge-warning'}">
               ${margen.toFixed(1)}% Margen
@@ -444,7 +437,7 @@ const app = {
       selectArticulo.innerHTML = `<option value="">-- Seleccionar prenda del catálogo (${state.articulos.length} disponibles) --</option>` +
         state.articulos.map(a => `
           <option value="${a.id}" data-precio="${a.precio}">
-            ${this.escaparHtml(a.nombre)} - Sugerido: ${this.formatearMonto(a.precio)}
+            ${this.escaparHtml(a.nombre)} - Sugerido: $${parseFloat(a.precio || 0).toFixed(2)}
           </option>
         `).join('');
       if (valorActual) selectArticulo.value = valorActual;
@@ -550,7 +543,7 @@ const app = {
           </td>
         </tr>`;
       if (resumenCount) resumenCount.textContent = '0 prendas';
-      if (resumenTotal) resumenTotal.textContent = this.formatearMonto(0);
+      if (resumenTotal) resumenTotal.textContent = '$0.00';
       return;
     }
 
@@ -570,8 +563,8 @@ const app = {
           <td style="text-align: center; font-weight: 600;">
             ${item.cantidad}
           </td>
-          <td style="text-align: right; color: var(--slate-700);">${this.formatearMonto(item.precio_unitario)}</td>
-          <td style="text-align: right; font-weight: 700; color: var(--primary);">${this.formatearMonto(item.subtotal)}</td>
+          <td style="text-align: right; color: var(--slate-700);">$${item.precio_unitario.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700; color: var(--primary);">$${item.subtotal.toFixed(2)}</td>
           <td style="text-align: center;">
             <button type="button" class="ag-btn btn-danger btn-sm" onclick="app.eliminarItemCarrito(${idx})" title="Eliminar ítem">
               <i class="fa-solid fa-trash-can"></i>
@@ -582,7 +575,7 @@ const app = {
     }).join('');
 
     if (resumenCount) resumenCount.textContent = `${totalUnidades} unidades (${state.carritoVenta.length} tipos de prendas)`;
-    if (resumenTotal) resumenTotal.textContent = this.formatearMonto(total);
+    if (resumenTotal) resumenTotal.textContent = `$${total.toFixed(2)}`;
   },
 
   limpiarFormVenta() {
@@ -667,7 +660,7 @@ async guardarVenta(event) {
 
       this.mostrarToast(
         '¡Venta Emitida con Éxito!',
-        `Factura #VNT-${ventaId} por ${this.formatearMonto(montoTotal)} generada correctamente.`,
+        `Factura #VNT-${ventaId} por $${montoTotal.toFixed(2)} generada correctamente.`,
         'success'
       );
 
@@ -804,10 +797,10 @@ async guardarVenta(event) {
             <div style="font-size: 0.75rem; color: var(--slate-500);">${this.escaparHtml(clienteRif)}</div>
           </td>
           <td>${v.fecha || 'Sin fecha'}</td>
-          <td style="text-align: right; font-weight: 600;">${this.formatearMonto(montoTotal)}</td>
-          <td style="text-align: right; font-weight: 600; color: var(--success);">${this.formatearMonto(totalAbonado)}</td>
+          <td style="text-align: right; font-weight: 600;">$${montoTotal.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 600; color: var(--success);">$${totalAbonado.toFixed(2)}</td>
           <td style="text-align: right; font-weight: 800; font-size: 0.95rem; color: ${tieneSaldo ? 'var(--danger)' : 'var(--success)'};">
-            ${this.formatearMonto(saldoPendiente)}
+            $${saldoPendiente.toFixed(2)}
           </td>
           <td style="text-align: center;">
             <span class="ag-badge ${badgeClass}">
@@ -815,7 +808,7 @@ async guardarVenta(event) {
             </span>
           </td>
           <td style="text-align: center;">
-            <div style="display: flex; gap: 0.35rem; justify-content: center; flex-wrap: nowrap;">
+            <div style="display: flex; gap: 0.35rem; justify-content: center;">
               ${tieneSaldo ? `
                 <button class="ag-btn btn-primary btn-sm" onclick="app.abrirModalCobro(${v.id})" title="Registrar Cobro / Abono">
                   <i class="fa-solid fa-hand-holding-dollar"></i> Cobrar
@@ -825,7 +818,7 @@ async guardarVenta(event) {
                   <i class="fa-solid fa-check"></i> Pagada
                 </button>
               `}
-              <button class="ag-btn btn-outline btn-sm" onclick="app.verDetalleFactura(${v.id})" title="Ver detalle, editar o eliminar factura">
+              <button class="ag-btn btn-outline btn-sm" onclick="app.verDetalleFactura(${v.id})" title="Ver artículos y recibos de pago">
                 <i class="fa-solid fa-eye"></i>
               </button>
             </div>
@@ -863,9 +856,9 @@ async guardarVenta(event) {
 
     if (lblFactura) lblFactura.textContent = `Factura #VNT-${venta.id}`;
     if (lblCliente) lblCliente.textContent = `Cliente: ${venta.clientes ? venta.clientes.nombre : 'General'}`;
-    if (lblTotal) lblTotal.textContent = this.formatearMonto(montoTotal);
-    if (lblAbonado) lblAbonado.textContent = this.formatearMonto(totalAbonado);
-    if (lblSaldo) lblSaldo.textContent = this.formatearMonto(saldoPendiente);
+    if (lblTotal) lblTotal.textContent = `$${montoTotal.toFixed(2)}`;
+    if (lblAbonado) lblAbonado.textContent = `$${totalAbonado.toFixed(2)}`;
+    if (lblSaldo) lblSaldo.textContent = `$${saldoPendiente.toFixed(2)}`;
 
     const inputMonto = document.getElementById('cobro-monto');
     if (inputMonto) {
@@ -932,19 +925,42 @@ async guardarVenta(event) {
         comentario: comentario || null
       };
 
-      const { error: errorCobro } = await window.supabaseClient
+      const { data: cobroCreado, error: errorCobro } = await window.supabaseClient
         .from('cobros')
-        .insert([nuevoCobro]);
+        .insert([nuevoCobro])
+        .select();
 
       if (errorCobro) throw errorCobro;
 
-      const { estado: nuevoEstado } = await this.recalcularEstadoVenta(ventaId);
+      const { data: todosLosCobros, error: errorSuma } = await window.supabaseClient
+        .from('cobros')
+        .select('monto')
+        .eq('venta_id', ventaId);
+
+      if (errorSuma) throw errorSuma;
+
+      const totalAcumuladoCobrado = (todosLosCobros || []).reduce((acc, c) => acc + parseFloat(c.monto || 0), 0);
+
+      let nuevoEstado = 'Pendiente';
+      if (totalAcumuladoCobrado >= montoTotalVenta - 0.009) {
+        nuevoEstado = 'Pagada';
+      } else if (totalAcumuladoCobrado > 0) {
+        nuevoEstado = 'Abonada';
+      }
+
+      const { error: errorUpdateVenta } = await window.supabaseClient
+        .from('ventas')
+        .update({ estado: nuevoEstado })
+        .eq('id', ventaId);
+
+      if (errorUpdateVenta) throw errorUpdateVenta;
 
       this.cerrarModalCobro();
 
+      const saldoRestante = Math.max(0, montoTotalVenta - totalAcumuladoCobrado);
       this.mostrarToast(
         '¡Cobro Registrado!',
-        `Cobro por ${this.formatearMonto(montoCobrado)} procesado vía ${metodoPago}. Estado: ${nuevoEstado}`,
+        `Cobro por $${montoCobrado.toFixed(2)} procesado vía ${metodoPago}. Estado: ${nuevoEstado}`,
         'success'
       );
 
@@ -968,8 +984,6 @@ async guardarVenta(event) {
     const tbodyCobros = document.getElementById('tbody-detalle-cobros');
 
     if (modal) modal.classList.remove('d-none');
-    const hiddenId = document.getElementById('detalle-factura-id');
-    if (hiddenId) hiddenId.value = ventaId;
     if (header) header.innerHTML = `<p class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i> Cargando factura...</p>`;
     if (tbodyItems) tbodyItems.innerHTML = `<tr><td colspan="4" class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
     if (tbodyCobros) tbodyCobros.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
@@ -1031,10 +1045,10 @@ async guardarVenta(event) {
               ${venta.estado}
             </span>
             <div style="margin-top: 0.5rem; font-size: 1.15rem; font-weight: 800; color: var(--primary);">
-              Total: ${this.formatearMonto(venta.monto_total)}
+              Total: $${parseFloat(venta.monto_total || 0).toFixed(2)}
             </div>
             <div style="font-size: 0.85rem; color: ${saldoPendiente > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: 600;">
-              Saldo: ${this.formatearMonto(saldoPendiente)}
+              Saldo: $${saldoPendiente.toFixed(2)}
             </div>
           </div>
         </div>
@@ -1050,8 +1064,8 @@ async guardarVenta(event) {
               <div style="font-weight: 600; color: var(--slate-900);">${this.escaparHtml(d.articulos?.nombre || 'Prenda #' + d.articulo_id)}</div>
             </td>
             <td style="text-align: center; font-weight: 600;">${d.cantidad}</td>
-            <td style="text-align: right;">${this.formatearMonto(d.precio_unitario)}</td>
-            <td style="text-align: right; font-weight: 700; color: var(--primary);">${this.formatearMonto(d.subtotal)}</td>
+            <td style="text-align: right;">$${parseFloat(d.precio_unitario || 0).toFixed(2)}</td>
+            <td style="text-align: right; font-weight: 700; color: var(--primary);">$${parseFloat(d.subtotal || 0).toFixed(2)}</td>
           </tr>
         `).join('');
       }
@@ -1060,7 +1074,7 @@ async guardarVenta(event) {
       if (listaCobros.length === 0) {
         tbodyCobros.innerHTML = `
           <tr>
-            <td colspan="6" class="empty-state" style="padding: 1.5rem;">
+            <td colspan="5" class="empty-state" style="padding: 1.5rem;">
               <p>No se han registrado pagos o abonos para esta factura aún.</p>
             </td>
           </tr>`;
@@ -1071,17 +1085,7 @@ async guardarVenta(event) {
             <td><span class="ag-badge badge-info">${this.escaparHtml(c.metodo_pago || 'General')}</span></td>
             <td>${this.escaparHtml(c.referencia || '-')}</td>
             <td>${this.escaparHtml(c.comentario || '-')}</td>
-            <td style="text-align: right; font-weight: 700; color: var(--success);">${this.formatearMonto(c.monto)}</td>
-            <td style="text-align: center;">
-              <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                <button class="ag-btn btn-outline btn-sm" onclick="app.abrirModalEditarCobro(${c.id}, ${ventaId})" title="Editar cobro">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button class="ag-btn btn-danger btn-sm" onclick="app.eliminarCobro(${c.id}, ${ventaId})" title="Eliminar cobro">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              </div>
-            </td>
+            <td style="text-align: right; font-weight: 700; color: var(--success);">$${parseFloat(c.monto || 0).toFixed(2)}</td>
           </tr>
         `).join('');
       }
@@ -1104,515 +1108,26 @@ async guardarVenta(event) {
     const kpiClientes = document.getElementById('kpi-clientes');
     const kpiArticulos = document.getElementById('kpi-articulos');
     const kpiFacturado = document.getElementById('kpi-facturado');
-    const kpiPagado = document.getElementById('kpi-pagado');
     const kpiPendiente = document.getElementById('kpi-pendiente');
 
     if (kpiClientes) kpiClientes.textContent = state.clientes.length;
     if (kpiArticulos) kpiArticulos.textContent = state.articulos.length;
 
-    const { desde, hasta } = this.obtenerRangoDashboard();
-
     let totalFacturado = 0;
     let totalPendiente = 0;
-    let totalPagado = 0;
-    let facturasEnRango = 0;
 
     state.ventas.forEach(v => {
+      const montoTotal = parseFloat(v.monto_total || 0);
       const cobrosArray = Array.isArray(v.cobros) ? v.cobros : [];
       const totalAbonado = cobrosArray.reduce((acc, c) => acc + parseFloat(c.monto || 0), 0);
+      const saldo = Math.max(0, montoTotal - totalAbonado);
 
-      // Facturado y por cobrar: facturas emitidas dentro del rango
-      if (v.fecha && v.fecha >= desde && v.fecha <= hasta) {
-        const montoTotal = parseFloat(v.monto_total || 0);
-        totalFacturado += montoTotal;
-        totalPendiente += Math.max(0, montoTotal - totalAbonado);
-        facturasEnRango += 1;
-      }
-
-      // Pagado: cobros con fecha de pago dentro del rango
-      cobrosArray.forEach(c => {
-        if (c.fecha_pago && c.fecha_pago >= desde && c.fecha_pago <= hasta) {
-          totalPagado += parseFloat(c.monto || 0);
-        }
-      });
+      totalFacturado += montoTotal;
+      totalPendiente += saldo;
     });
 
-    if (kpiFacturado) kpiFacturado.textContent = this.formatearMonto(totalFacturado);
-    if (kpiPagado) kpiPagado.textContent = this.formatearMonto(totalPagado);
-    if (kpiPendiente) kpiPendiente.textContent = this.formatearMonto(totalPendiente);
-
-    const label = document.getElementById('dash-rango-label');
-    if (label) label.textContent = `${desde} → ${hasta} · ${facturasEnRango} factura(s)`;
-  },
-
-  fechaHoyISO() {
-    return new Date().toISOString().split('T')[0];
-  },
-
-  fechaHace30ISO() {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0];
-  },
-
-  obtenerRangoDashboard() {
-    const desde = document.getElementById('dash-desde')?.value || this.fechaHace30ISO();
-    const hasta = document.getElementById('dash-hasta')?.value || this.fechaHoyISO();
-    return { desde, hasta };
-  },
-
-  rango30Dias() {
-    const desdeEl = document.getElementById('dash-desde');
-    const hastaEl = document.getElementById('dash-hasta');
-    if (desdeEl) desdeEl.value = this.fechaHace30ISO();
-    if (hastaEl) hastaEl.value = this.fechaHoyISO();
-    this.actualizarKPIs();
-  },
-
-  // ===================================================================
-  // 8. EDICIÓN / ELIMINACIÓN DE FACTURAS Y COBROS
-  // ===================================================================
-  async recalcularEstadoVenta(ventaId) {
-    const { data: ventaRow, error: eVenta } = await window.supabaseClient
-      .from('ventas')
-      .select('monto_total')
-      .eq('id', ventaId)
-      .single();
-
-    if (eVenta) throw eVenta;
-
-    const montoTotal = parseFloat(ventaRow?.monto_total || 0);
-
-    const { data: cobros, error: eCobros } = await window.supabaseClient
-      .from('cobros')
-      .select('monto')
-      .eq('venta_id', ventaId);
-
-    if (eCobros) throw eCobros;
-
-    const totalAbonado = (cobros || []).reduce((acc, c) => acc + parseFloat(c.monto || 0), 0);
-
-    let estado = 'Pendiente';
-    if (totalAbonado >= montoTotal - 0.009) {
-      estado = 'Pagada';
-    } else if (totalAbonado > 0) {
-      estado = 'Abonada';
-    }
-
-    const { error: eUpdate } = await window.supabaseClient
-      .from('ventas')
-      .update({ estado })
-      .eq('id', ventaId);
-
-    if (eUpdate) throw eUpdate;
-
-    return { estado, totalAbonado };
-  },
-
-  async eliminarFactura(ventaId) {
-    const confirmado = window.confirm(`¿Eliminar la factura #VNT-${ventaId}? Se borrarán también sus artículos y cobros asociados. Esta acción no se puede deshacer.`);
-    if (!confirmado) return false;
-
-    try {
-      const { error: eCobros } = await window.supabaseClient.from('cobros').delete().eq('venta_id', ventaId);
-      if (eCobros) throw eCobros;
-
-      const { error: eDetalles } = await window.supabaseClient.from('detalle_ventas').delete().eq('venta_id', ventaId);
-      if (eDetalles) throw eDetalles;
-
-      const { error: eVenta } = await window.supabaseClient.from('ventas').delete().eq('id', ventaId);
-      if (eVenta) throw eVenta;
-
-      this.mostrarToast('Factura Eliminada', `La factura #VNT-${ventaId} fue eliminada.`, 'success');
-      await this.cargarCobranzas();
-      return true;
-    } catch (err) {
-      console.error('Error al eliminar factura:', err);
-      this.mostrarToast('Error', err.message || 'No se pudo eliminar la factura.', 'danger');
-      return false;
-    }
-  },
-
-  abrirEdicionFacturaDesdeDetalle() {
-    const ventaId = parseInt(document.getElementById('detalle-factura-id')?.value, 10);
-    if (!ventaId) return;
-    this.cerrarModalDetalle();
-    this.abrirModalEditarFactura(ventaId);
-  },
-
-  async eliminarFacturaDesdeDetalle() {
-    const ventaId = parseInt(document.getElementById('detalle-factura-id')?.value, 10);
-    if (!ventaId) return;
-    const eliminada = await this.eliminarFactura(ventaId);
-    if (eliminada) this.cerrarModalDetalle();
-  },
-
-  async eliminarCobro(cobroId, ventaId) {
-    const confirmado = window.confirm('¿Eliminar este cobro/abono? Esta acción no se puede deshacer.');
-    if (!confirmado) return;
-
-    try {
-      const { error } = await window.supabaseClient.from('cobros').delete().eq('id', cobroId);
-      if (error) throw error;
-
-      await this.recalcularEstadoVenta(ventaId);
-
-      this.mostrarToast('Cobro Eliminado', 'El abono fue eliminado correctamente.', 'success');
-      await this.cargarCobranzas();
-      await this.verDetalleFactura(ventaId);
-    } catch (err) {
-      console.error('Error al eliminar cobro:', err);
-      this.mostrarToast('Error', err.message || 'No se pudo eliminar el cobro.', 'danger');
-    }
-  },
-
-  // --- Edición de Factura ---
-  async abrirModalEditarFactura(ventaId) {
-    const venta = state.ventas.find(v => v.id === ventaId);
-    if (!venta) {
-      this.mostrarToast('Error', 'No se encontró la factura seleccionada.', 'danger');
-      return;
-    }
-
-    // Selector de clientes
-    const selectCliente = document.getElementById('editar-factura-cliente');
-    if (selectCliente) {
-      selectCliente.innerHTML = state.clientes.map(c =>
-        `<option value="${c.id}">${this.escaparHtml(c.nombre)} [RIF: ${this.escaparHtml(c.cedula_rif || 'N/A')}]</option>`
-      ).join('');
-      selectCliente.value = venta.cliente_id;
-    }
-
-    // Selector de artículos
-    const selectArticulo = document.getElementById('editar-item-articulo');
-    if (selectArticulo) {
-      selectArticulo.innerHTML = `<option value="">-- Seleccionar prenda --</option>` +
-        state.articulos.map(a =>
-          `<option value="${a.id}" data-precio="${a.precio}">${this.escaparHtml(a.nombre)} - ${this.formatearMonto(a.precio)}</option>`
-        ).join('');
-    }
-
-    const idInput = document.getElementById('editar-factura-id');
-    const fechaInput = document.getElementById('editar-factura-fecha');
-    const comInput = document.getElementById('editar-factura-comentario');
-    const lbl = document.getElementById('editar-factura-label');
-
-    if (idInput) idInput.value = venta.id;
-    if (fechaInput) fechaInput.value = venta.fecha || '';
-    if (comInput) comInput.value = venta.comentario || '';
-    if (lbl) lbl.textContent = `#VNT-${venta.id}`;
-
-    // Cargar artículos de la factura
-    const { data: detalles, error } = await window.supabaseClient
-      .from('detalle_ventas')
-      .select(`*, articulos (*)`)
-      .eq('venta_id', ventaId);
-
-    if (error) {
-      console.error('Error al cargar detalle para edición:', error);
-      this.mostrarToast('Error', 'No se pudieron cargar los artículos de la factura.', 'danger');
-      return;
-    }
-
-    state.edicionFactura = {
-      ventaId,
-      items: (detalles || []).map(d => ({
-        articulo_id: d.articulo_id,
-        nombre: d.articulos?.nombre || ('Prenda #' + d.articulo_id),
-        cantidad: parseInt(d.cantidad || 1, 10),
-        precio_unitario: parseFloat(d.precio_unitario || 0)
-      }))
-    };
-
-    this.renderizarItemsEdicion();
-
-    const modal = document.getElementById('modal-editar-factura');
-    if (modal) modal.classList.remove('d-none');
-  },
-
-  cerrarModalEditarFactura() {
-    const modal = document.getElementById('modal-editar-factura');
-    if (modal) modal.classList.add('d-none');
-  },
-
-  renderizarItemsEdicion() {
-    const tbody = document.getElementById('tbody-editar-items');
-    const totalEl = document.getElementById('editar-factura-total');
-    if (!tbody || !state.edicionFactura) return;
-
-    const items = state.edicionFactura.items;
-
-    if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="padding: 1.25rem;"><p>La factura no tiene artículos. Agrega al menos uno.</p></td></tr>`;
-      if (totalEl) totalEl.textContent = this.formatearMonto(0);
-      return;
-    }
-
-    let total = 0;
-    tbody.innerHTML = items.map((it, idx) => {
-      const subtotal = it.cantidad * it.precio_unitario;
-      total += subtotal;
-      return `
-        <tr>
-          <td><div style="font-weight: 600; color: var(--slate-900);">${this.escaparHtml(it.nombre)}</div></td>
-          <td style="text-align: center;">
-            <input type="number" min="1" class="form-control" style="width: 80px; margin: 0 auto; text-align: center;" value="${it.cantidad}" onchange="app.editarItemEdicion(${idx}, 'cantidad', this.value)">
-          </td>
-          <td style="text-align: right;">
-            <input type="number" step="0.01" min="0" class="form-control" style="width: 120px; margin-left: auto; text-align: right;" value="${it.precio_unitario.toFixed(2)}" onchange="app.editarItemEdicion(${idx}, 'precio_unitario', this.value)">
-          </td>
-          <td style="text-align: right; font-weight: 700; color: var(--primary);">${this.formatearMonto(subtotal)}</td>
-          <td style="text-align: center;">
-            <button type="button" class="ag-btn btn-danger btn-sm" onclick="app.eliminarItemEdicion(${idx})" title="Quitar artículo">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </td>
-        </tr>`;
-    }).join('');
-
-    if (totalEl) totalEl.textContent = this.formatearMonto(total);
-  },
-
-  editarItemEdicion(index, campo, valor) {
-    if (!state.edicionFactura || !state.edicionFactura.items[index]) return;
-
-    if (campo === 'cantidad') {
-      const n = parseInt(valor, 10);
-      state.edicionFactura.items[index].cantidad = (isNaN(n) || n < 1) ? 1 : n;
-    } else if (campo === 'precio_unitario') {
-      const n = parseFloat(valor);
-      state.edicionFactura.items[index].precio_unitario = (isNaN(n) || n < 0) ? 0 : n;
-    }
-
-    this.renderizarItemsEdicion();
-  },
-
-  eliminarItemEdicion(index) {
-    if (!state.edicionFactura || !state.edicionFactura.items[index]) return;
-    const removido = state.edicionFactura.items.splice(index, 1)[0];
-    this.renderizarItemsEdicion();
-    this.mostrarToast('Artículo Removido', `${removido.nombre} fue quitado de la factura.`, 'info');
-  },
-
-  alSeleccionarArticuloEdicion() {
-    const select = document.getElementById('editar-item-articulo');
-    const inputPrecio = document.getElementById('editar-item-precio');
-    if (!select || !inputPrecio) return;
-
-    const articuloId = parseInt(select.value, 10);
-    const articulo = state.articulos.find(a => a.id === articuloId);
-
-    if (articulo) {
-      inputPrecio.value = parseFloat(articulo.precio || 0).toFixed(2);
-    } else {
-      inputPrecio.value = '';
-    }
-  },
-
-  agregarItemEdicion() {
-    if (!state.edicionFactura) return;
-
-    const select = document.getElementById('editar-item-articulo');
-    const inputPrecio = document.getElementById('editar-item-precio');
-    const inputCantidad = document.getElementById('editar-item-cantidad');
-
-    const articuloId = parseInt(select?.value, 10);
-    const precioUnitario = parseFloat(inputPrecio?.value);
-    const cantidad = parseInt(inputCantidad?.value, 10);
-
-    if (!articuloId || isNaN(articuloId)) {
-      this.mostrarToast('Atención', 'Selecciona un artículo del catálogo.', 'warning');
-      return;
-    }
-    if (isNaN(precioUnitario) || precioUnitario < 0) {
-      this.mostrarToast('Atención', 'Ingresa un precio unitario válido.', 'warning');
-      return;
-    }
-    if (isNaN(cantidad) || cantidad <= 0) {
-      this.mostrarToast('Atención', 'La cantidad debe ser mayor a 0.', 'warning');
-      return;
-    }
-
-    const articulo = state.articulos.find(a => a.id === articuloId);
-    const nombre = articulo ? articulo.nombre : 'Artículo #' + articuloId;
-
-    const indexExistente = state.edicionFactura.items.findIndex(i => i.articulo_id === articuloId && i.precio_unitario === precioUnitario);
-    if (indexExistente !== -1) {
-      state.edicionFactura.items[indexExistente].cantidad += cantidad;
-    } else {
-      state.edicionFactura.items.push({ articulo_id: articuloId, nombre, cantidad, precio_unitario: precioUnitario });
-    }
-
-    if (select) select.value = '';
-    if (inputPrecio) inputPrecio.value = '';
-    if (inputCantidad) inputCantidad.value = '1';
-
-    this.renderizarItemsEdicion();
-    this.mostrarToast('Artículo Agregado', `${nombre} añadido a la factura.`, 'success');
-  },
-
-  async guardarEdicionFactura(event) {
-    if (event) event.preventDefault();
-    if (!state.edicionFactura) return;
-
-    const btnSubmit = document.getElementById('btn-submit-editar-factura');
-    const originalText = btnSubmit ? btnSubmit.innerHTML : '';
-
-    const ventaId = state.edicionFactura.ventaId;
-    const clienteId = parseInt(document.getElementById('editar-factura-cliente')?.value, 10);
-    const fecha = document.getElementById('editar-factura-fecha')?.value;
-    const comentario = document.getElementById('editar-factura-comentario')?.value.trim();
-
-    if (!clienteId || isNaN(clienteId)) {
-      this.mostrarToast('Validación', 'Selecciona el cliente de la factura.', 'warning');
-      return;
-    }
-    if (!fecha) {
-      this.mostrarToast('Validación', 'Selecciona la fecha de emisión.', 'warning');
-      return;
-    }
-    if (state.edicionFactura.items.length === 0) {
-      this.mostrarToast('Factura Vacía', 'La factura debe tener al menos un artículo.', 'warning');
-      return;
-    }
-
-    const montoTotal = state.edicionFactura.items.reduce((acc, i) => acc + (i.cantidad * i.precio_unitario), 0);
-
-    try {
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<span class="spinner"></span> Guardando...`;
-      }
-
-      const { error: eVenta } = await window.supabaseClient
-        .from('ventas')
-        .update({ cliente_id: clienteId, fecha, comentario: comentario || null, monto_total: montoTotal })
-        .eq('id', ventaId);
-      if (eVenta) throw eVenta;
-
-      const { error: eDelete } = await window.supabaseClient
-        .from('detalle_ventas')
-        .delete()
-        .eq('venta_id', ventaId);
-      if (eDelete) throw eDelete;
-
-      const detalles = state.edicionFactura.items.map(i => ({
-        venta_id: ventaId,
-        articulo_id: i.articulo_id,
-        cantidad: parseInt(i.cantidad, 10),
-        precio_unitario: parseFloat(i.precio_unitario)
-      }));
-
-      const { error: eInsert } = await window.supabaseClient
-        .from('detalle_ventas')
-        .insert(detalles);
-      if (eInsert) throw eInsert;
-
-      await this.recalcularEstadoVenta(ventaId);
-
-      this.cerrarModalEditarFactura();
-      this.mostrarToast('Factura Actualizada', `La factura #VNT-${ventaId} fue actualizada por ${this.formatearMonto(montoTotal)}.`, 'success');
-      await this.cargarCobranzas();
-    } catch (err) {
-      console.error('Error al guardar edición de factura:', err);
-      this.mostrarToast('Error', err.message || 'No se pudo actualizar la factura.', 'danger');
-    } finally {
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = originalText;
-      }
-    }
-  },
-
-  // --- Edición de Cobro ---
-  abrirModalEditarCobro(cobroId, ventaId) {
-    let cobro = null;
-    const venta = state.ventas.find(v => v.id === ventaId);
-    if (venta && Array.isArray(venta.cobros)) {
-      cobro = venta.cobros.find(c => c.id === cobroId);
-    }
-
-    if (!cobro) {
-      this.mostrarToast('Error', 'No se encontró el cobro seleccionado.', 'danger');
-      return;
-    }
-
-    const setV = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-    setV('editar-cobro-id', cobro.id);
-    setV('editar-cobro-venta-id', ventaId);
-    setV('editar-cobro-fecha', cobro.fecha_pago || '');
-    setV('editar-cobro-monto', parseFloat(cobro.monto || 0).toFixed(2));
-    setV('editar-cobro-metodo', cobro.metodo_pago || 'Transferencia');
-    setV('editar-cobro-referencia', cobro.referencia || '');
-    setV('editar-cobro-comentario', cobro.comentario || '');
-
-    const modal = document.getElementById('modal-editar-cobro');
-    if (modal) modal.classList.remove('d-none');
-  },
-
-  cerrarModalEditarCobro() {
-    const modal = document.getElementById('modal-editar-cobro');
-    if (modal) modal.classList.add('d-none');
-  },
-
-  async guardarEdicionCobro(event) {
-    if (event) event.preventDefault();
-
-    const btnSubmit = document.getElementById('btn-submit-editar-cobro');
-    const originalText = btnSubmit ? btnSubmit.innerHTML : '';
-
-    const cobroId = parseInt(document.getElementById('editar-cobro-id')?.value, 10);
-    const ventaId = parseInt(document.getElementById('editar-cobro-venta-id')?.value, 10);
-    const fechaPago = document.getElementById('editar-cobro-fecha')?.value;
-    const monto = parseFloat(document.getElementById('editar-cobro-monto')?.value);
-    const metodoPago = document.getElementById('editar-cobro-metodo')?.value;
-    const referencia = document.getElementById('editar-cobro-referencia')?.value.trim();
-    const comentario = document.getElementById('editar-cobro-comentario')?.value.trim();
-
-    if (isNaN(monto) || monto <= 0) {
-      this.mostrarToast('Monto Inválido', 'El monto debe ser mayor a 0.', 'warning');
-      return;
-    }
-
-    try {
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `<span class="spinner"></span> Guardando...`;
-      }
-
-      const { error } = await window.supabaseClient
-        .from('cobros')
-        .update({
-          fecha_pago: fechaPago,
-          monto,
-          metodo_pago: metodoPago,
-          referencia: referencia || null,
-          comentario: comentario || null
-        })
-        .eq('id', cobroId);
-      if (error) throw error;
-
-      await this.recalcularEstadoVenta(ventaId);
-
-      this.cerrarModalEditarCobro();
-      this.mostrarToast('Cobro Actualizado', `El cobro fue actualizado a ${this.formatearMonto(monto)}.`, 'success');
-      await this.cargarCobranzas();
-      await this.verDetalleFactura(ventaId);
-    } catch (err) {
-      console.error('Error al guardar edición de cobro:', err);
-      this.mostrarToast('Error', err.message || 'No se pudo actualizar el cobro.', 'danger');
-    } finally {
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = originalText;
-      }
-    }
-  },
-
-  formatearMonto(valor) {
-    const n = parseFloat(valor || 0);
-    const seguro = isNaN(n) ? 0 : n;
-    return '$' + seguro.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (kpiFacturado) kpiFacturado.textContent = `$${totalFacturado.toFixed(2)}`;
+    if (kpiPendiente) kpiPendiente.textContent = `$${totalPendiente.toFixed(2)}`;
   },
 
   // ===================================================================
